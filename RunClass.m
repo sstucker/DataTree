@@ -147,7 +147,8 @@ classdef RunClass < TreeNodeClass
             if isempty(obj)
                 return;
             end
-            obj.procStream.input.SaveAcquiredData()
+            obj.logger.Write(sprintf('Acquired data at %s overwritten\n', obj.name));
+            obj.acquired.Save();  % Overwrite the file on disk
         end
         
         
@@ -188,8 +189,9 @@ classdef RunClass < TreeNodeClass
         function CopyStims(obj, obj2)
             obj.CondNames = obj2.CondNames;
             obj.procStream.CopyStims(obj2.procStream);
+            obj.acquired.CopyStim(obj2.acquired);
         end
-               
+        
         
         % ----------------------------------------------------------------------------------
         % Subjects obj1 and obj2 are considered equivalent if their names
