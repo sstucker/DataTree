@@ -669,35 +669,30 @@ classdef SnirfClass < AcqDataClass & FileLoadSaveClass
         
         % -------------------------------------------------------
         function changes = StimChangesMade(obj)
-            
-            flags = zeros(length(obj.stim), 1);
-            
+            changes = false;
             % Load stims from file
             snirf = SnirfClass();
             snirf.LoadStim(obj.GetFilename);
             stimFromFile = snirf.stim;
-            
-            % Update stims from file with edited stims
-            for ii = 1:length(obj.stim)
-                for jj = 1:length(stimFromFile)
-                    if strcmp(obj.stim(ii).GetName(), stimFromFile(jj).GetName())
-                        if obj.stim(ii) ~= stimFromFile(jj)
-                            flags(ii) = 1;
-                        else
-                            flags(ii) = -1;
-                        end
-                        break;
-                    end
-                end
-                if flags(ii)==0
-                    % We have new stimulus condition added
-                    if ~obj.stim(ii).IsEmpty()
-                        flags(ii) = 1;
-                    end
+            % If conditions added or deleted
+            if length(obj.stim) ~= length(stimFromFile)
+               changes = true;
+               return
+            end
+            for i = 1:length(obj.stim)
+                % If stim data not equivalent in size or value
+                if ~all(size(stimFromFile(i).data) == size(obj.stim(i).data))
+                    changes = true;
+                    return
+                elseif ~all(stimFromFile(i).data == obj.stim(i).data)
+                    changes = true;
+                    return
+                % If stim name or labels changed
+                elseif ~strcmp(stimFromFile(i).name, obj.stim(i).name) || ~strcmp([stimFromFile(1).dataLabels{:}], [obj.stim(1).dataLabels{:}])
+                    changes = true;
+                    return
                 end
             end
-            flags(flags ~= 1) = 0;
-            changes = sum(flags)>0;
         end
         
         
