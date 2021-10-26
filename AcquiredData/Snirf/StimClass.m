@@ -7,9 +7,9 @@ classdef StimClass < FileLoadSaveClass
         states  % Stim marks enabled/disabled. Not part of SNIRF
     end
    
-    % Properties not part of the SNIRF spec. These parameters aren't loaded or saved to files
+    % Properties not part of the SNIRF spec. These properties aren't loaded or saved to files
     properties (Access = private)
-        errmargin  % Margin for interpolating onset times. Not part of SNIRF
+        errmargin  % Margin for interpolating onset times
         debuglevel
     end    
     
@@ -372,11 +372,11 @@ classdef StimClass < FileLoadSaveClass
             if ~exist('amp','var')
                 amp = 1;
             end
-            if ~exist('more', 'var') | isempty(more)
-               more = zeros(size(obj.data, 2) - 3);
+            if ~exist('more', 'var')
+               more = [];
             end
             if ~isempty(obj.data)
-                if ~isempty(more) & length(more) > (size(obj.data, 2) - 3)
+                if ~isempty(more) && (length(more) > (size(obj.data, 2) - 3))
                     obj.data(:, end+length(more)) = 0;  % Pad to accomodate additional data columns 
                 end
                 for i=1:length(tPts)
@@ -593,6 +593,7 @@ classdef StimClass < FileLoadSaveClass
                 return;
             else
                 idx = find(strcmp(obj.dataLabels, name));
+                idx = idx(idx > 3);  % Don't delete original columns
                 if isempty(idx)
                    return; 
                 end

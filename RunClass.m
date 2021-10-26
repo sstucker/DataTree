@@ -605,6 +605,9 @@ classdef RunClass < TreeNodeClass
             if isempty(condition)
                 return;
             end
+            if ~exist('more', 'var')
+               more = []; 
+            end
             % New stims must be added both to derived data but also
             % mirrored in the acquired data-- the condition list generated
             % by SetConditions may not be mirrored
