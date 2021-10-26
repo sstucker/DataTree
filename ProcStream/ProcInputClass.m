@@ -471,19 +471,6 @@ classdef ProcInputClass < handle
         
         % ----------------------------------------------------------------------------------
         function RenameCondition(obj, oldname, newname)
-            % Function to rename a condition. Important to note that changing the
-            % condition involves 2 distinct well defined steps:
-            %
-            %   a) For the current element change the name of the specified (old)
-            %      condition ONLY for ALL the ACQUIRED data elements under the
-            %      current element, be it run, subj, or group . In this step we DO NOT TOUCH
-            %      the derived set of condition names of the run, subject or group .
-            %   b) Rebuild condition names and tables of all the tree nodes group, subjects
-            %      and runs same as if you were loading during Homer3 startup from the
-            %      acquired data.
-            %
-            % This method only implements step a). 
-            %
             if ~exist('oldname','var') || ~ischar(oldname)
                 return;
             end
@@ -492,6 +479,25 @@ classdef ProcInputClass < handle
             end
             obj.acquired.RenameCondition(oldname, newname);
         end
+        
+        
+        % ----------------------------------------------------------------------------------
+        function DeleteCondition(obj, name)
+            if ~exist('name','var') || ~ischar(name)
+                return;
+            end
+            obj.acquired.DeleteCondition(name);
+        end
+        
+        
+        % ----------------------------------------------------------------------------------
+        function AddCondition(obj, name)
+            if ~exist('name','var') || ~ischar(name)
+                return;
+            end
+            obj.acquired.AddCondition(name);
+        end
+        
     end   
     
 end

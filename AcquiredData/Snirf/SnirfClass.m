@@ -1400,6 +1400,34 @@ classdef SnirfClass < AcqDataClass & FileLoadSaveClass
             obj.SortStims();
         end
         
+        % ----------------------------------------------------------------------------------
+        function DeleteCondition(obj, name)
+            if ~exist('name','var') || ~ischar(name)
+                return;
+            end
+            for i = 1:length(obj.stim)
+                if strcmp(obj.stim(i).GetName(), name)
+                    obj.stim(i) = [];
+                    return;
+                end
+            end
+        end
+        
+        
+        % ----------------------------------------------------------------------------------
+        function AddCondition(obj, name)
+            if ~exist('name','var') || ~ischar(name)
+                return;
+            end
+            for i = 1:length(obj.stim)
+                if strcmp(obj.stim(i).GetName(), name)
+                    return  % Do not add a duplicate condition name
+                end
+            end
+            obj.stim(end + 1) = StimClass(condition);
+            obj.SortStims();
+        end
+        
         
         % ----------------------------------------------------------------------------------
         function b = IsEmpty(obj)

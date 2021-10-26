@@ -570,7 +570,25 @@ classdef SubjClass < TreeNodeClass
             end
         end
         
+        % ----------------------------------------------------------------------------------
+        function DeleteCondition(obj, name)
+            if ~exist('name','var') || ~ischar(name)
+                return;
+            end
+            for i = 1:length(obj.runs)
+                obj.runs(i).DeleteCondition(name);
+            end
+        end
         
+        % ----------------------------------------------------------------------------------
+        function AddCondition(obj, name)
+            if ~exist('name','var') || ~ischar(name)
+                return;
+            end
+            for i = 1:length(obj.runs)
+                obj.runs(i).AddCondition(name);
+            end
+        end
         
         % ----------------------------------------------------------------------------------
         function aux = GetAuxiliary(obj)
