@@ -363,13 +363,6 @@ classdef ProcStreamClass < handle
             end
             b = false;
         end
-
-
-        % ----------------------------------------------------------------------------------
-        function b = AcquiredDataModified(obj)
-            b = obj.input.AcquiredDataModified();
-        end
-        
         
     end
     
@@ -1448,6 +1441,11 @@ classdef ProcStreamClass < handle
                 return;
             end
             obj.input.RenameStimColumn(oldname, newname);
+        end
+        
+        % ----------------------------------------------------------------------------------
+        function SetStimData(obj, data, icond)
+            obj.input.SetStimData(data, icond);
         end
         
         % ----------------------------------------------------------------------------------

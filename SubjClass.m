@@ -575,6 +575,13 @@ classdef SubjClass < TreeNodeClass
             if ~exist('name','var') || ~ischar(name)
                 return;
             end
+            where = false(length(obj.CondNames), 1);
+            for i = 1:length(obj.CondNames)
+               if strcmp(obj.CondNames{i}, name)
+                  where(i) = true; 
+               end
+            end
+            obj.CondNames(where) = [];
             for i = 1:length(obj.runs)
                 obj.runs(i).DeleteCondition(name);
             end

@@ -154,7 +154,7 @@ classdef RunClass < TreeNodeClass
         
         % ----------------------------------------------------------------------------------
         function b = AcquiredDataModified(obj)
-            b = obj.procStream.AcquiredDataModified();
+            b = obj.acquired.StimChangesMade();
             if b
                 obj.logger.Write(sprintf('Acquisition data for run %s has been modified\n', obj.name));
             end
@@ -472,6 +472,17 @@ classdef RunClass < TreeNodeClass
             s(k_out_edit(b)) = s_out(k_out_edit(b));
         end
         
+        % ----------------------------------------------------------------------------------
+        function SetStimData(obj, data, icond)            
+            if ~exist('data', 'var') || size(data, 2) < 3
+               return
+            end
+            if ~exist('icond', 'var')
+               icond = 1; 
+            end
+            obj.procStream.SetStimData(data, icond);
+            obj.acquired.SetStimData(data, icond);
+        end
         
         % ----------------------------------------------------------------------------------
         function SetConditions(obj, CondNames)
@@ -763,6 +774,13 @@ classdef RunClass < TreeNodeClass
             if ~exist('name','var') || ~ischar(name)
                 return;
             end
+            where = false(length(obj.CondNames), 1);
+            for i = 1:length(obj.CondNames)
+               if strcmp(obj.CondNames{i}, name)
+                  where(i) = true; 
+               end
+            end
+            obj.CondNames(where) = [];
             obj.procStream.DeleteCondition(name);
             obj.acquired.DeleteCondition(name);
         end

@@ -145,12 +145,7 @@ classdef ProcInputClass < handle
             end
             nbytes = sum(nbytes);
         end
-
         
-        % ----------------------------------------------------------------------------------
-        function b = AcquiredDataModified(obj)
-            b = obj.acquired.DataModified();
-        end
         
         % ----------------------------------------------------------------------------------
         function inputs = GetProcInputs(obj)
@@ -350,6 +345,11 @@ classdef ProcInputClass < handle
                 return;
             end
             obj.acquired.RenameStimColumn(oldname, newname);
+        end
+        
+        % ----------------------------------------------------------------------------------
+        function SetStimData(obj, data, icond)
+            obj.acquired.SetStimData(data, icond);
         end
         
         % ----------------------------------------------------------------------------------

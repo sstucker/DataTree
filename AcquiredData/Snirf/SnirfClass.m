@@ -962,6 +962,12 @@ classdef SnirfClass < AcqDataClass & FileLoadSaveClass
         
         
         % ---------------------------------------------------------
+        function SetStimData(obj, data, icond)
+            obj.stim(icond).SetData(data);
+        end
+        
+        
+        % ---------------------------------------------------------
         function s = GetStims(obj, t)
             % Returns a .nirs style stim signal. Stim state marks are
             % interpolated onto the time series t from their respective

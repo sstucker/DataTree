@@ -887,6 +887,7 @@ classdef GroupClass < TreeNodeClass
             for i = 1:length(obj.subjs)
                 obj.subjs(i).DeleteCondition(name);
             end
+            SetConditions();
         end
         
         % ----------------------------------------------------------------------------------
