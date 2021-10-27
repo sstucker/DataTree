@@ -122,9 +122,12 @@ classdef SnirfClass < AcqDataClass & FileLoadSaveClass
                         end
                     end
                     
-                    % Load Snirf file here ONLY if data storage scheme is 'memory'
+                    % Load entire Snirf file here ONLY if data storage
+                    % scheme is 'memory', if 'files', load only mutable
                     if strcmpi(obj.GetDataStorageScheme, 'memory')
                         obj.Load(varargin{1});
+                    else
+                        obj.LoadMutable(varargin{1});
                     end
                     
                     
@@ -358,6 +361,12 @@ classdef SnirfClass < AcqDataClass & FileLoadSaveClass
         end
         
         
+        % -------------------------------------------------------
+        function err = LoadMutable(obj, fileobj)
+            % Mutable data is loaded to memory even if the data storage
+            % scheme is 'files'
+            err = obj.LoadStim(fileobj);
+        end
         
         
         % -------------------------------------------------------

@@ -483,11 +483,14 @@ classdef RunClass < TreeNodeClass
                icond = 1; 
             end
             obj.procStream.SetStimData(data, icond);
-            obj.acquired.SetStimData(data, icond);
+            obj.acquired.SetStimData(data, icond);  
         end
+        
         
         % ----------------------------------------------------------------------------------
         function SetConditions(obj, CondNames)
+            % Set the list of conditions in the derived data from the top
+            % down so that global stim data structures agree
             if nargin==2
                 obj.procStream.SetConditions(CondNames);
             end
@@ -497,12 +500,23 @@ classdef RunClass < TreeNodeClass
         
         % ----------------------------------------------------------------------------------
         function CondNames = GetConditions(obj)
+            % Return list of conditions in derived data, which should be
+            % the same throughout the dataTree
             CondNames = obj.procStream.GetConditions();
         end
         
         
         % ----------------------------------------------------------------------------------
+        function CondNames = GetAcquiredConditions(obj)
+            % Return list of conditions saved in .snirf file on disk
+            CondNames = obj.acquired.GetConditions();
+        end
+        
+        
+        % ----------------------------------------------------------------------------------
         function CondNames = GetConditionsActive(obj)
+            % Get list of conditions with '--' appended to those which are
+            % populated by stims in the acquired data
             CondNames = obj.CondNames;
             t = obj.GetTime();
             s = obj.GetStims(t);

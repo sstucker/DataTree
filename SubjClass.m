@@ -529,6 +529,17 @@ classdef SubjClass < TreeNodeClass
         
         
         % ----------------------------------------------------------------------------------
+        function CondNames = GetAcquiredConditions(obj)
+            % Get the names of stims in the .snirf files on disk
+            CondNames = {};
+            for i = 1:length(obj.runs)
+                CondNames = [CondNames, obj.runs(i).GetAcquiredConditions()]; %#ok<AGROW>
+            end
+            CondNames = unique(CondNames);
+        end
+        
+        
+        % ----------------------------------------------------------------------------------
         function CondNames = GetConditionsActive(obj)
             CondNames = obj.CondNames;
             for ii=1:length(obj.runs)
