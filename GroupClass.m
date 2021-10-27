@@ -680,9 +680,9 @@ classdef GroupClass < TreeNodeClass
            
         
         % ----------------------------------------------------------------------------------
-        function SaveAcquiredData(obj)            
+        function OverwriteMutableData(obj)            
             for ii = 1:length(obj.subjs)
-                obj.subjs(ii).SaveAcquiredData();
+                obj.subjs(ii).OverwriteMutableData();
             end
         end
         

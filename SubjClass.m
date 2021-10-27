@@ -394,9 +394,9 @@ classdef SubjClass < TreeNodeClass
 
 
         % ----------------------------------------------------------------------------------
-        function SaveAcquiredData(obj)            
+        function OverwriteMutableData(obj)            
             for ii = 1:length(obj.runs)
-                obj.runs(ii).SaveAcquiredData();
+                obj.runs(ii).OverwriteMutableData();
             end
         end
         

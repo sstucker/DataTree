@@ -143,12 +143,14 @@ classdef RunClass < TreeNodeClass
         
         
         % ----------------------------------------------------------------------------------
-        function SaveAcquiredData(obj)
+        function OverwriteMutableData(obj)
             if isempty(obj)
                 return;
             end
-            obj.logger.Write(sprintf('Acquired data at %s overwritten\n', obj.name));
-            obj.acquired.Save();  % Overwrite the file on disk
+            tmp = SnirfClass([obj.path obj.name]);  % Load the acquired data
+            tmp.CopyStim(obj.acquired);  % Copy the changed stims
+            tmp.Save();  % Overwrite the data on disk.
+            obj.logger.Write(sprintf('Acquired data at %s overwritten\n', [obj.path obj.name]));
         end
         
         
