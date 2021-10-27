@@ -632,10 +632,6 @@ classdef SnirfClass < AcqDataClass & FileLoadSaveClass
                 error('Unable to save file. No file name given.')
             end
             
-            % Args
-            if exist(fileobj, 'file')
-                delete(fileobj);
-            end
             obj.fid = H5F.create(fileobj, 'H5F_ACC_TRUNC', 'H5P_DEFAULT', 'H5P_DEFAULT');
             H5F.close(obj.fid);
             
