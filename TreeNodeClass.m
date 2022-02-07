@@ -5,6 +5,7 @@ classdef TreeNodeClass < handle
         type;
         iGroup;
         iSubj;
+        iSess;
         iRun;
         iFile;
         procStream;
@@ -14,7 +15,7 @@ classdef TreeNodeClass < handle
     end
     
     properties
-        outputVars
+        inputVars
         DEBUG
         path
         logger
@@ -36,9 +37,12 @@ classdef TreeNodeClass < handle
             obj.DEBUG = 0;
             
             obj.name = '';
+            
             obj.iGroup = 0;
             obj.iSubj = 0;
+            obj.iSess = 0;
             obj.iRun = 0;
+            
             obj.type = '';
             obj.procStream = ProcStreamClass();
             obj.err = 0;
@@ -125,6 +129,8 @@ classdef TreeNodeClass < handle
             switch(class(obj))
                 case 'RunClass'
                     objnew = RunClass('copy');
+                case 'SessClass'
+                    objnew = SessClass('copy');
                 case 'SubjClass'
                     objnew = SubjClass('copy');
                 case 'GroupClass'
@@ -151,9 +157,18 @@ classdef TreeNodeClass < handle
                 obj.type = obj2.type;
                 obj.iGroup = obj2.iGroup;
                 obj.iSubj = obj2.iSubj;
+                obj.iSess = obj2.iSess;
                 obj.iRun = obj2.iRun;
             end
             if ~isempty(obj2.procStream)
+                [pathname, filename] = fileparts([obj.path, obj.GetOutputFilename()]);                
+                
+                % Recreate the same relative dir structure under derived output
+                % folder as exists directly under the group folder
+                if ispathvalid([filesepStandard(obj.path), obj.name], 'dir')
+                    pathname = [filesepStandard(pathname), filename];
+                end
+                obj.procStream.SaveInitOutput(pathname, filename);
                 obj.procStream.Copy(obj2.procStream, [obj.path, obj.GetOutputFilename()]);
             end
         end
@@ -192,15 +207,18 @@ classdef TreeNodeClass < handle
         
 
         % ----------------------------------------------------------------------------------
-        function SetIndexID(obj, iG, iS, iR)
+        function SetIndexID(obj, iGroup, iSubj, iSess, iRun)
             if nargin>1
-                obj.iGroup = iG;
+                obj.iGroup = iGroup;
             end            
             if nargin>2
-                obj.iSubj = iS;
+                obj.iSubj = iSubj;
             end
             if nargin>3
-                obj.iRun = iR;
+                obj.iSess = iSess;
+            end
+            if nargin>4
+                obj.iRun = iRun;
             end
         end
         
@@ -236,8 +254,10 @@ classdef TreeNodeClass < handle
                 obj.GroupsProcFlags(obj.iGroup, 1);
             elseif isa(obj, 'SubjClass')
                 obj.SubjsProcFlags(obj.iGroup, obj.iSubj, 1);
+            elseif isa(obj, 'SessClass')
+                obj.SubjsProcFlags(obj.iGroup, obj.iSubj, obj.iSess, 1);
             elseif isa(obj, 'RunClass')
-                obj.RunsProcFlags(obj.iGroup, obj.iSubj, obj.iRun, 1);
+                obj.RunsProcFlags(obj.iGroup, obj.iSubj, obj.iSess, obj.iRun, 1);
             end
         end
         
@@ -245,7 +265,7 @@ classdef TreeNodeClass < handle
         
         % ----------------------------------------------------------------------------------
         function idx = GetIndexID(obj)
-            idx = [obj.iGroup, obj.iSubj, obj.iRun];
+            idx = [obj.iGroup, obj.iSubj, obj.iSess, obj.iRun];
         end
         
         
@@ -272,6 +292,17 @@ classdef TreeNodeClass < handle
         
         
         % ----------------------------------------------------------------------------------
+        function b = IsSess(obj)
+            if strcmp('sess', obj.type)
+                b = true;
+            else
+                b = false;
+            end
+        end
+        
+        
+        
+        % ----------------------------------------------------------------------------------
         function b = IsRun(obj)
             if strcmp('run', obj.type)
                 b = true;
@@ -282,12 +313,12 @@ classdef TreeNodeClass < handle
         
         
         % ----------------------------------------------------------------------------------
-        function b = IsSame(obj, iG, iS, iR)
+        function b = IsSame(obj, iGroup, iSubj, iSess, iRun)
             b = false;
             if isempty(obj)
                 return;
             end
-            if iG==obj.iGroup && iS==obj.iSubj && iR==obj.iRun
+            if iGroup==obj.iGroup && iSubj==obj.iSubj && iSess==obj.iSess && iRun==obj.iRun
                 b = true;
             end                
         end
@@ -685,7 +716,7 @@ classdef TreeNodeClass < handle
         % ----------------------------------------------------------------------------------
         function Calc(obj)            
             % Make variables in this subject available to processing stream input
-            obj.procStream.input.LoadVars(obj.outputVars);
+            obj.procStream.input.LoadVars(obj.inputVars);
 
             % Calculate processing stream
             obj.procStream.Calc([obj.path, obj.GetOutputFilename()]);
@@ -704,6 +735,7 @@ classdef TreeNodeClass < handle
 
         % ----------------------------------------------------------------------------------
         function ExportHRF(obj, ~, iBlk)
+            obj.logger.Write('Exporting  %s', [obj.path, obj.GetOutputFilename()]);
 
             % Update call application GUI using it's generic Update function
             if ~isempty(obj.updateParentGui)
@@ -747,7 +779,7 @@ classdef TreeNodeClass < handle
                 return;
             end
             if optionExists(options, 'legacy')
-                outputDirname = '';
+                outputDirname = ''; %#ok<*PROPLC>
             else
                 outputDirname = obj.outputDirname;
             end
@@ -771,7 +803,6 @@ classdef TreeNodeClass < handle
         
         % ----------------------------------------------------------------------------------
         function status = Mismatch(obj, obj2)
-            global cfg
             status = 0;
             if exist('obj2','var')                
                 if obj == obj2
@@ -795,13 +826,9 @@ classdef TreeNodeClass < handle
             end
             obj.logger.Write([msg{:}])
             if strcmp(obj.GroupDataLoadWarnings, configFileOptions{1})
-                status = 0;
                 return;
             end
             selection = MenuBox(msg, choices, [], [], 'dontAskAgainOptions');
-            if selection(1)==1
-                status = 0;
-            end
             if length(selection)<2
                 selection(2)=0;
             end
@@ -811,8 +838,8 @@ classdef TreeNodeClass < handle
             if selection(2)>0
                 if ~strcmp(obj.GroupDataLoadWarnings, configFileOptions{selection(2)})
                     % Overwrite config value
-                    cfg.SetValue('Group Data Loading Warnings', configFileOptions{selection(2)});
-                    cfg.Save();
+                    obj.cfg.SetValue('Group Data Loading Warnings', configFileOptions{selection(2)});
+                    obj.cfg.Save();
                     obj.GroupDataLoadWarnings()
                 end
             end
@@ -829,7 +856,7 @@ classdef TreeNodeClass < handle
         
         % ------------------------------------------------------------
         function Print(obj, indent)
-            obj.logger.Write(sprintf('%s%s\n', blanks(indent), [obj.path, obj.procStream.output.SetFilename(obj.GetOutputFilename())] ));
+            obj.logger.Write('%s%s\n', blanks(indent), obj.procStream.output.SetFilename([obj.path, obj.GetOutputFilename()]) );
         end
 
         
@@ -856,6 +883,47 @@ classdef TreeNodeClass < handle
                 end
             end
         end
+        
+        
+        
+        % -------------------------------------------------------
+        function Rename(obj, namenew)
+            [pnameAcquiredNew, fnameAcquiredNew] = fileparts(namenew);
+            [pnameAcquired, fnameAcquired, ext] = fileparts(obj.name);            
+            filenameOutput = obj.GetOutputFilename();
+            [pnameDerived, fnameDerived] = fileparts(filenameOutput);
+            
+            pnameAcquired = filesepStandard(pnameAcquired);
+            pnameAcquiredNew = filesepStandard(pnameAcquiredNew, 'nameonly:dir');
+            pnameDerived = filesepStandard(pnameDerived);
+            
+            obj.logger.Write(sprintf('Renaming %s to %s', obj.name, namenew));
+
+            if ispathvalid([pnameAcquired, fnameAcquired, ext])
+                obj.logger.Write(sprintf('  Moving %s to %s', [pnameAcquired, fnameAcquired, ext], [pnameAcquiredNew, fnameAcquiredNew, ext]));
+                %movefile([filenameOutput, ext], [pnameAcquired, namenew, ext]);
+            end
+            
+            
+            % Dewrived data
+            if ispathvalid([pnameDerived, fnameDerived, '.mat'])
+                obj.logger.Write(sprintf('  Moving %s to %s', [pnameDerived, fnameDerived, '.mat'], [pnameAcquiredNew, namenew, '.mat']));
+                %movefile([filenameOutput, '.mat'], [pnameDerived, namenew, '.mat']);
+            elseif ispathvalid([pnameDerived, fnameDerived, '/', fnameDerived, '.mat'])
+                obj.logger.Write(sprintf('  Moving %s to %s', [pnameDerived, fnameDerived, '/', fnameDerived, '.mat'], ...
+                    [pnameDerived, fnameDerived, '/', namenew, '.mat']));
+                obj.logger.Write(sprintf('  Moving %s to %s', [pnameDerived, fnameDerived], ...
+                    [pnameAcquiredNew, namenew]));
+                %movefile([filenameOutput, '.mat'], [pnameDerived, namenew, '.mat']);
+            end
+            
+            if ispathvalid([pnameDerived, fnameDerived])
+                obj.logger.Write(sprintf('  Moving %s to %s', [pnameDerived, fnameDerived], [pnameDerived, fnameNew]));
+                %movefile([filenameOutput, ext], [pnameDerived, namenew, ext]);
+            end
+%             obj.name = [filesepStandard(pnameNew), fnameNew, ext];
+        end
+        
         
     end
 
