@@ -13,19 +13,25 @@ classdef DataTreeClass <  handle
         dataStorageScheme
     end
     
+    
+    
+    
     methods
         
         % ---------------------------------------------------------------
         function obj = DataTreeClass(groupDirs, fmt, procStreamCfgFile, options)
             global logger
             global cfg
+                       
+            obj.InitNamespace();
             
+            obj.logger              = InitLogger(logger, 'DataTreeClass');
+            cfg                     = InitConfig(cfg);
+
             obj.groups              = GroupClass().empty();
             obj.currElem            = TreeNodeClass().empty();
             obj.reg                 = RegistriesClass().empty();
             obj.dirnameGroups       = {};
-            obj.logger              = InitLogger(logger, 'DataTree');
-            cfg                     = InitConfig(cfg);
             
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -97,6 +103,17 @@ classdef DataTreeClass <  handle
         end
         
         
+        
+        % --------------------------------------------------------------
+        function InitNamespace(obj)
+            nm = getNamespace();
+            if isempty(nm)
+                setNamespace('DataTreeClass');
+            end
+        end
+        
+        
+        
         % --------------------------------------------------------------
         function delete(obj)
             if isa(obj.logger, 'Logger')
@@ -157,7 +174,7 @@ classdef DataTreeClass <  handle
             end
             if ~isempty(k)
                 dataInit = FindFiles(obj.dirnameGroups{kk}, supportedFormats{k});
-                if isempty(dataInit) || dataInit.isempty()
+                if isempty(dataInit) || dataInit.IsEmpty()
                     return;
                 end
             else
@@ -236,7 +253,7 @@ classdef DataTreeClass <  handle
                     iter = 1;
                     while dataInit.GetError() < 0
                         dataInit = FindFiles(obj.dirnameGroups{kk}, fmt, options);
-                        if isempty(dataInit) || dataInit.isempty()
+                        if isempty(dataInit) || dataInit.IsEmpty()
                             return;
                         end
                         dataInitPrev(iter) = dataInit;
@@ -421,7 +438,7 @@ classdef DataTreeClass <  handle
                         
             % Add group to this dataTree
             jj=0;
-            for ii = 1:length(obj.groups)
+            for ii=1:length(obj.groups)
                 if strcmp(obj.groups(ii).GetName, group.GetName())
                     jj=ii;
                     break;
@@ -454,7 +471,7 @@ classdef DataTreeClass <  handle
         % ----------------------------------------------------------------------------------
         function list = DepthFirstTraversalList(obj)
             list = {};
-            for ii = 1:length(obj.groups)
+            for ii=1:length(obj.groups)
                 list = [list; obj.groups(ii).DepthFirstTraversalList()];
             end
         end        
@@ -527,7 +544,7 @@ classdef DataTreeClass <  handle
         end
 
 
-                % ----------------------------------------------------------
+        % ----------------------------------------------------------
         function CopyCurrElem(obj, obj2, options)
             if isempty(obj)
                 return;
