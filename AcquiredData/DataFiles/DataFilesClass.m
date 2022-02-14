@@ -305,7 +305,7 @@ classdef DataFilesClass < handle
             [p2,f2] = fileparts(filesepStandard(obj.files(ii).rootdir,'nameonly:file'));
             [~,f3]  = fileparts(p2);
             if isfile_private(obj.files(ii).GetName())
-                filetype = 'file';
+                filetype = 'file'; %#ok<*PROPLC>
             else
                 filetype = 'folder';
             end
@@ -351,7 +351,7 @@ classdef DataFilesClass < handle
             
         
         % ----------------------------------------------------------
-        function b = isempty(obj)
+        function b = IsEmpty(obj)
             if isempty(obj.files)
                 b = true;
             else
